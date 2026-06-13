@@ -599,19 +599,3 @@ Alerts:
 - Consider privacy requirements before broadcasting display names; user profile
   fields may need to be fetched from a public profile read model.
 
-## 19. Open Questions for Product and Engineering
-
-- What action types exist, and are score deltas static or configurable by time
-  period?
-- Can scores ever decrease because of penalties, reversals, or moderation?
-- Should leaderboards be global only, or also daily, weekly, seasonal, or
-  regional?
-- How long should score transactions and rejected attempts be retained?
-- If anonymous users can view the leaderboard, which user profile fields are
-  safe to expose publicly?
-- What is the expected peak write rate for score updates and peak concurrent
-  WebSocket connections?
-- Which WSS ingress/load balancer will be used, and what are its WebSocket idle
-  timeout, header forwarding, and connection draining behaviors?
-- What Redis availability target is required for the Redis WebSocket adapter and
-  leaderboard read model?
