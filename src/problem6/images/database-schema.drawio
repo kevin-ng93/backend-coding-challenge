@@ -1,0 +1,121 @@
+<mxfile host="app.diagrams.net" modified="2026-06-13T16:30:00.000Z" agent="Codex" version="30.0.4" type="device">
+  <diagram id="scoreboard-database-schema" name="Database Schema">
+    <mxGraphModel dx="1600" dy="1000" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1600" pageHeight="1000" math="0" shadow="0">
+      <root>
+        <mxCell id="0"/>
+        <mxCell id="1" parent="0"/>
+        <mxCell id="title" value="Real-Time Scoreboard Module - Database Schema" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=26;fontStyle=1;fontColor=#0f172a;" vertex="1" parent="1">
+          <mxGeometry x="320" y="20" width="960" height="40" as="geometry"/>
+        </mxCell>
+        <mxCell id="note" value="Primary database remains the source of truth. Redis leaderboard data is a rebuildable read model derived from user_scores." style="rounded=1;whiteSpace=wrap;html=1;arcSize=8;fillColor=#f8fafc;strokeColor=#cbd5e1;fontColor=#334155;fontSize=13;spacing=10;" vertex="1" parent="1">
+          <mxGeometry x="360" y="75" width="880" height="45" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="users-box" value="" style="rounded=1;whiteSpace=wrap;html=1;arcSize=8;fillColor=#f8fafc;strokeColor=#94a3b8;dashed=1;" vertex="1" parent="1">
+          <mxGeometry x="70" y="150" width="230" height="150" as="geometry"/>
+        </mxCell>
+        <mxCell id="users-header" value="External Auth / Users" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#e2e8f0;strokeColor=none;fontColor=#0f172a;fontStyle=1;align=center;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="70" y="150" width="230" height="34" as="geometry"/>
+        </mxCell>
+        <mxCell id="users-body" value="id: string&lt;br&gt;display_name: string&lt;br&gt;status: enum&lt;br&gt;&lt;br&gt;&lt;font color=&quot;#64748b&quot;&gt;Owned by Auth/User service.&lt;/font&gt;" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=top;whiteSpace=wrap;fontSize=12;fontColor=#334155;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="80" y="194" width="210" height="95" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="policies-box" value="" style="rounded=1;whiteSpace=wrap;html=1;arcSize=8;fillColor=#ffffff;strokeColor=#2563eb;" vertex="1" parent="1">
+          <mxGeometry x="70" y="390" width="300" height="185" as="geometry"/>
+        </mxCell>
+        <mxCell id="policies-header" value="action_policies" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dbeafe;strokeColor=none;fontColor=#1e3a8a;fontStyle=1;align=center;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="70" y="390" width="300" height="34" as="geometry"/>
+        </mxCell>
+        <mxCell id="policies-body" value="PK action_type: string&lt;br&gt;score_delta: integer&lt;br&gt;enabled: boolean&lt;br&gt;updated_at: timestamp&lt;br&gt;&lt;br&gt;&lt;font color=&quot;#64748b&quot;&gt;Trusted source for awarded points.&lt;/font&gt;" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=top;whiteSpace=wrap;fontSize=12;fontColor=#334155;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="80" y="434" width="280" height="125" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="attempts-box" value="" style="rounded=1;whiteSpace=wrap;html=1;arcSize=8;fillColor=#ffffff;strokeColor=#7c3aed;" vertex="1" parent="1">
+          <mxGeometry x="440" y="145" width="330" height="265" as="geometry"/>
+        </mxCell>
+        <mxCell id="attempts-header" value="score_attempts" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ede9fe;strokeColor=none;fontColor=#4c1d95;fontStyle=1;align=center;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="440" y="145" width="330" height="34" as="geometry"/>
+        </mxCell>
+        <mxCell id="attempts-body" value="PK id: string&lt;br&gt;user_id: string nullable&lt;br&gt;FK action_type: string nullable&lt;br&gt;action_completion_id: string nullable&lt;br&gt;idempotency_key: string nullable&lt;br&gt;request_hash: string&lt;br&gt;status: accepted | rejected&lt;br&gt;rejection_code: string nullable&lt;br&gt;FK transaction_id: string nullable&lt;br&gt;ip_hash: string nullable&lt;br&gt;user_agent_hash: string nullable&lt;br&gt;created_at: timestamp" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=top;whiteSpace=wrap;fontSize=12;fontColor=#334155;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="450" y="189" width="310" height="205" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="transactions-box" value="" style="rounded=1;whiteSpace=wrap;html=1;arcSize=8;fillColor=#ffffff;strokeColor=#16a34a;" vertex="1" parent="1">
+          <mxGeometry x="850" y="145" width="330" height="245" as="geometry"/>
+        </mxCell>
+        <mxCell id="transactions-header" value="score_transactions" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dcfce7;strokeColor=none;fontColor=#14532d;fontStyle=1;align=center;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="850" y="145" width="330" height="34" as="geometry"/>
+        </mxCell>
+        <mxCell id="transactions-body" value="PK id: string&lt;br&gt;FK user_id: string&lt;br&gt;FK action_type: string&lt;br&gt;UK action_completion_id: string&lt;br&gt;score_delta: integer&lt;br&gt;idempotency_key: string&lt;br&gt;request_hash: string&lt;br&gt;created_at: timestamp&lt;br&gt;&lt;br&gt;&lt;font color=&quot;#64748b&quot;&gt;Unique (user_id, idempotency_key).&lt;/font&gt;" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=top;whiteSpace=wrap;fontSize=12;fontColor=#334155;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="860" y="189" width="310" height="185" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="scores-box" value="" style="rounded=1;whiteSpace=wrap;html=1;arcSize=8;fillColor=#ffffff;strokeColor=#16a34a;" vertex="1" parent="1">
+          <mxGeometry x="1260" y="145" width="270" height="175" as="geometry"/>
+        </mxCell>
+        <mxCell id="scores-header" value="user_scores" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dcfce7;strokeColor=none;fontColor=#14532d;fontStyle=1;align=center;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="1260" y="145" width="270" height="34" as="geometry"/>
+        </mxCell>
+        <mxCell id="scores-body" value="PK user_id: string&lt;br&gt;score: integer&lt;br&gt;updated_at: timestamp&lt;br&gt;&lt;br&gt;&lt;font color=&quot;#64748b&quot;&gt;Aggregate total used to rebuild Redis sorted set.&lt;/font&gt;" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=top;whiteSpace=wrap;fontSize=12;fontColor=#334155;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="1270" y="189" width="250" height="115" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="outbox-box" value="" style="rounded=1;whiteSpace=wrap;html=1;arcSize=8;fillColor=#ffffff;strokeColor=#f97316;" vertex="1" parent="1">
+          <mxGeometry x="850" y="500" width="330" height="245" as="geometry"/>
+        </mxCell>
+        <mxCell id="outbox-header" value="outbox_events" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffedd5;strokeColor=none;fontColor=#7c2d12;fontStyle=1;align=center;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="850" y="500" width="330" height="34" as="geometry"/>
+        </mxCell>
+        <mxCell id="outbox-body" value="PK id: string&lt;br&gt;type: string&lt;br&gt;aggregate_type: string&lt;br&gt;FK aggregate_id: string&lt;br&gt;payload: json&lt;br&gt;published_at: timestamp nullable&lt;br&gt;retry_count: integer&lt;br&gt;last_error: string nullable&lt;br&gt;next_retry_at: timestamp nullable&lt;br&gt;created_at: timestamp" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=top;whiteSpace=wrap;fontSize=12;fontColor=#334155;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="860" y="544" width="310" height="185" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="indexes-box" value="" style="rounded=1;whiteSpace=wrap;html=1;arcSize=8;fillColor=#fff7ed;strokeColor=#fdba74;" vertex="1" parent="1">
+          <mxGeometry x="90" y="670" width="680" height="190" as="geometry"/>
+        </mxCell>
+        <mxCell id="indexes-header" value="Required Constraints and Indexes" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#fed7aa;strokeColor=none;fontColor=#7c2d12;fontStyle=1;align=center;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="90" y="670" width="680" height="34" as="geometry"/>
+        </mxCell>
+        <mxCell id="indexes-body" value="score_transactions: UNIQUE action_completion_id; UNIQUE (user_id, idempotency_key); INDEX (user_id, created_at)&lt;br&gt;score_attempts: INDEX (user_id, created_at); INDEX (action_completion_id); INDEX (status, created_at)&lt;br&gt;outbox_events: INDEX (published_at, next_retry_at); INDEX (aggregate_type, aggregate_id)&lt;br&gt;user_scores: INDEX (score DESC) if database fallback leaderboard queries are required" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=top;whiteSpace=wrap;fontSize=12;fontColor=#7c2d12;spacing=10;" vertex="1" parent="1">
+          <mxGeometry x="105" y="718" width="650" height="120" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="redis-box" value="" style="rounded=1;whiteSpace=wrap;html=1;arcSize=8;fillColor=#ecfeff;strokeColor=#06b6d4;dashed=1;" vertex="1" parent="1">
+          <mxGeometry x="1260" y="500" width="270" height="150" as="geometry"/>
+        </mxCell>
+        <mxCell id="redis-header" value="Redis Read Model" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#cffafe;strokeColor=none;fontColor=#164e63;fontStyle=1;align=center;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="1260" y="500" width="270" height="34" as="geometry"/>
+        </mxCell>
+        <mxCell id="redis-body" value="leaderboard:global&lt;br&gt;member: userId&lt;br&gt;score: totalScore&lt;br&gt;&lt;br&gt;&lt;font color=&quot;#64748b&quot;&gt;Not source of truth.&lt;/font&gt;" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=top;whiteSpace=wrap;fontSize=12;fontColor=#334155;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="1270" y="544" width="250" height="90" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="edge-policy-attempt" value="action_type" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeColor=#2563eb;fontColor=#1e3a8a;exitX=1;exitY=0.55;entryX=0;entryY=0.82;" edge="1" parent="1" source="policies-box" target="attempts-box">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="edge-policy-txn" value="action_type" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeColor=#2563eb;fontColor=#1e3a8a;exitX=1;exitY=0.70;entryX=0;entryY=0.82;" edge="1" parent="1" source="policies-box" target="transactions-box">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="410" y="625"/>
+              <mxPoint x="800" y="625"/>
+              <mxPoint x="800" y="345"/>
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="edge-attempt-txn" value="accepted attempt" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeColor=#7c3aed;fontColor=#4c1d95;" edge="1" parent="1" source="attempts-box" target="transactions-box">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="edge-txn-score" value="updates aggregate" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeColor=#16a34a;fontColor=#14532d;" edge="1" parent="1" source="transactions-box" target="scores-box">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="edge-txn-outbox" value="creates ScoreApplied" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeColor=#f97316;fontColor=#7c2d12;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" edge="1" parent="1" source="transactions-box" target="outbox-box">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="edge-score-redis" value="rebuilds" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeColor=#06b6d4;fontColor=#164e63;dashed=1;" edge="1" parent="1" source="scores-box" target="redis-box">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
