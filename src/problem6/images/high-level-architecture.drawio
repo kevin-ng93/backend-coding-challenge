@@ -1,0 +1,132 @@
+<mxfile host="app.diagrams.net" modified="2026-06-13T15:10:00.000Z" agent="Codex" version="24.7.17" type="device">
+  <diagram id="scoreboard-high-level" name="High-Level Architecture">
+    <mxGraphModel dx="1600" dy="920" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1600" pageHeight="820" math="0" shadow="0">
+      <root>
+        <mxCell id="0"/>
+        <mxCell id="1" parent="0"/>
+
+        <mxCell id="title" value="Real-Time Scoreboard Module - High-Level Architecture" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=26;fontStyle=1;fontColor=#0f172a;" vertex="1" parent="1">
+          <mxGeometry x="330" y="20" width="940" height="40" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="client-zone" value="Client Layer" style="swimlane;html=1;whiteSpace=wrap;rounded=1;arcSize=8;startSize=32;fillColor=#f8fafc;strokeColor=#cbd5e1;fontColor=#0f172a;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="40" y="90" width="260" height="620" as="geometry"/>
+        </mxCell>
+        <mxCell id="api-zone" value="API and Validation" style="swimlane;html=1;whiteSpace=wrap;rounded=1;arcSize=8;startSize=32;fillColor=#eff6ff;strokeColor=#93c5fd;fontColor=#1e3a8a;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="340" y="90" width="350" height="620" as="geometry"/>
+        </mxCell>
+        <mxCell id="data-zone" value="Persistence and Processing" style="swimlane;html=1;whiteSpace=wrap;rounded=1;arcSize=8;startSize=32;fillColor=#f0fdf4;strokeColor=#86efac;fontColor=#14532d;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="730" y="90" width="420" height="620" as="geometry"/>
+        </mxCell>
+        <mxCell id="realtime-zone" value="Realtime Fan-out and Scale-out" style="swimlane;html=1;whiteSpace=wrap;rounded=1;arcSize=8;startSize=32;fillColor=#fff7ed;strokeColor=#fdba74;fontColor=#7c2d12;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="1190" y="90" width="370" height="620" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="web-client" value="Web Client&lt;br&gt;&lt;font style=&quot;font-size: 11px;&quot;&gt;REST score update&lt;br&gt;WSS leaderboard subscription&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;arcSize=12;fillColor=#ffffff;strokeColor=#64748b;fontColor=#0f172a;fontStyle=1;spacing=10;" vertex="1" parent="1">
+          <mxGeometry x="80" y="250" width="180" height="95" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="score-api" value="Score API&lt;br&gt;&lt;font style=&quot;font-size: 11px;&quot;&gt;POST /v1/score-events&lt;br&gt;idempotency + audit&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;arcSize=12;fillColor=#dbeafe;strokeColor=#2563eb;fontColor=#1e3a8a;fontStyle=1;spacing=10;" vertex="1" parent="1">
+          <mxGeometry x="420" y="165" width="190" height="95" as="geometry"/>
+        </mxCell>
+        <mxCell id="auth-service" value="Auth / User Service&lt;br&gt;&lt;font style=&quot;font-size: 11px;&quot;&gt;JWT validation&lt;br&gt;scope checks&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;arcSize=12;fillColor=#ffffff;strokeColor=#60a5fa;fontColor=#1e3a8a;spacing=10;" vertex="1" parent="1">
+          <mxGeometry x="365" y="340" width="145" height="85" as="geometry"/>
+        </mxCell>
+        <mxCell id="action-verifier" value="Action Verifier&lt;br&gt;&lt;font style=&quot;font-size: 11px;&quot;&gt;signed proof&lt;br&gt;single-use completion&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;arcSize=12;fillColor=#ffffff;strokeColor=#60a5fa;fontColor=#1e3a8a;spacing=10;" vertex="1" parent="1">
+          <mxGeometry x="525" y="340" width="145" height="85" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="primary-db" value="Primary Database&lt;br&gt;&lt;font style=&quot;font-size: 11px;&quot;&gt;score_transactions&lt;br&gt;user_scores&lt;br&gt;action_policies&lt;br&gt;outbox_events&lt;/font&gt;" style="shape=cylinder3d;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=15;fillColor=#dcfce7;strokeColor=#16a34a;fontColor=#14532d;fontStyle=1;spacing=10;" vertex="1" parent="1">
+          <mxGeometry x="790" y="155" width="180" height="150" as="geometry"/>
+        </mxCell>
+        <mxCell id="score-worker" value="Score Worker&lt;br&gt;&lt;font style=&quot;font-size: 11px;&quot;&gt;polls outbox&lt;br&gt;updates leaderboard&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;arcSize=12;fillColor=#ffffff;strokeColor=#22c55e;fontColor=#14532d;fontStyle=1;spacing=10;" vertex="1" parent="1">
+          <mxGeometry x="925" y="405" width="170" height="90" as="geometry"/>
+        </mxCell>
+        <mxCell id="redis-zset" value="Redis Sorted Set&lt;br&gt;&lt;font style=&quot;font-size: 11px;&quot;&gt;leaderboard:global&lt;br&gt;top 10 read model&lt;/font&gt;" style="shape=cylinder3d;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=15;fillColor=#bbf7d0;strokeColor=#16a34a;fontColor=#14532d;spacing=10;" vertex="1" parent="1">
+          <mxGeometry x="790" y="535" width="180" height="115" as="geometry"/>
+        </mxCell>
+        <mxCell id="rebuild-job" value="Rebuild Job&lt;br&gt;&lt;font style=&quot;font-size: 11px;&quot;&gt;restore Redis from DB&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;arcSize=12;fillColor=#ffffff;strokeColor=#22c55e;fontColor=#14532d;spacing=10;" vertex="1" parent="1">
+          <mxGeometry x="970" y="590" width="140" height="70" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="event-bus" value="Leaderboard Event Bus&lt;br&gt;&lt;font style=&quot;font-size: 11px;&quot;&gt;leaderboard.updated&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;arcSize=12;fillColor=#ffedd5;strokeColor=#f97316;fontColor=#7c2d12;fontStyle=1;spacing=10;" vertex="1" parent="1">
+          <mxGeometry x="1245" y="170" width="220" height="85" as="geometry"/>
+        </mxCell>
+        <mxCell id="ws-adapter" value="Redis WebSocket Adapter&lt;br&gt;&lt;font style=&quot;font-size: 11px;&quot;&gt;Pub/Sub fan-out across gateway nodes&lt;/font&gt;" style="shape=cylinder3d;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=15;fillColor=#fed7aa;strokeColor=#f97316;fontColor=#7c2d12;fontStyle=1;spacing=10;" vertex="1" parent="1">
+          <mxGeometry x="1245" y="315" width="220" height="105" as="geometry"/>
+        </mxCell>
+        <mxCell id="ws-gateway-a" value="WebSocket Gateway A&lt;br&gt;&lt;font style=&quot;font-size: 11px;&quot;&gt;local socket sessions&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;arcSize=12;fillColor=#ffffff;strokeColor=#fb923c;fontColor=#7c2d12;spacing=10;" vertex="1" parent="1">
+          <mxGeometry x="1215" y="495" width="155" height="85" as="geometry"/>
+        </mxCell>
+        <mxCell id="ws-gateway-b" value="WebSocket Gateway B&lt;br&gt;&lt;font style=&quot;font-size: 11px;&quot;&gt;local socket sessions&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;arcSize=12;fillColor=#ffffff;strokeColor=#fb923c;fontColor=#7c2d12;spacing=10;" vertex="1" parent="1">
+          <mxGeometry x="1390" y="495" width="155" height="85" as="geometry"/>
+        </mxCell>
+        <mxCell id="ws-ingress" value="WSS Ingress / Load Balancer&lt;br&gt;&lt;font style=&quot;font-size: 11px;&quot;&gt;routes client socket sessions&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;arcSize=12;fillColor=#ffffff;strokeColor=#fb923c;fontColor=#7c2d12;spacing=10;" vertex="1" parent="1">
+          <mxGeometry x="1245" y="635" width="220" height="60" as="geometry"/>
+        </mxCell>
+
+
+        <mxCell id="edge-web-api" value="HTTPS score claim" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeWidth=2;strokeColor=#2563eb;fontColor=#1e3a8a;" edge="1" parent="1" source="web-client" target="score-api">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="edge-api-auth" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeColor=#60a5fa;fontColor=#1e3a8a;" edge="1" parent="1" source="score-api" target="auth-service">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="edge-api-verify" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeColor=#60a5fa;fontColor=#1e3a8a;" edge="1" parent="1" source="score-api" target="action-verifier">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="edge-api-db" value="transaction + outbox" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeWidth=2;strokeColor=#16a34a;fontColor=#14532d;" edge="1" parent="1" source="score-api" target="primary-db">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="edge-db-worker" value="poll outbox" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeColor=#16a34a;fontColor=#14532d;" edge="1" parent="1" source="primary-db" target="score-worker">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="edge-worker-redis" value="ZINCRBY + top 10" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeWidth=2;strokeColor=#16a34a;fontColor=#14532d;" edge="1" parent="1" source="score-worker" target="redis-zset">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="edge-db-rebuild" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeColor=#16a34a;fontColor=#14532d;" edge="1" parent="1" source="primary-db" target="rebuild-job">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1125" y="230"/>
+              <mxPoint x="1125" y="625"/>
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="edge-rebuild-redis" value="restore" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeColor=#16a34a;fontColor=#14532d;" edge="1" parent="1" source="rebuild-job" target="redis-zset">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="edge-worker-eventbus" value="top 10 changed" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeWidth=2;strokeColor=#f97316;fontColor=#7c2d12;" edge="1" parent="1" source="score-worker" target="event-bus">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1170" y="450"/>
+              <mxPoint x="1170" y="213"/>
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="edge-eventbus-adapter" value="publish" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeWidth=2;strokeColor=#f97316;fontColor=#7c2d12;" edge="1" parent="1" source="event-bus" target="ws-adapter">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="edge-adapter-gateway-a" value="fan-out" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeWidth=2;strokeColor=#f97316;fontColor=#7c2d12;" edge="1" parent="1" source="ws-adapter" target="ws-gateway-a">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="edge-adapter-gateway-b" value="fan-out" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeWidth=2;strokeColor=#f97316;fontColor=#7c2d12;" edge="1" parent="1" source="ws-adapter" target="ws-gateway-b">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="edge-ingress-gateway-a" value="route session" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeColor=#fb923c;fontColor=#7c2d12;" edge="1" parent="1" source="ws-ingress" target="ws-gateway-a">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="edge-ingress-gateway-b" value="route session" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeColor=#fb923c;fontColor=#7c2d12;" edge="1" parent="1" source="ws-ingress" target="ws-gateway-b">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="edge-web-ws-ingress" value="WSS subscription" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;startArrow=block;startFill=1;endArrow=block;endFill=1;strokeWidth=2;strokeColor=#f97316;fontColor=#7c2d12;" edge="1" parent="1" source="web-client" target="ws-ingress">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="170" y="760"/>
+              <mxPoint x="1355" y="760"/>
+            </Array>
+          </mxGeometry>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
