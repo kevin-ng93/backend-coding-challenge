@@ -16,7 +16,18 @@ module.
 - Receive an API call when an action is completed.
 - Prevent malicious users from increasing scores without authorization.
 
-## 3. Scope
+## 3. Requirement Traceability
+
+| Assignment requirement | Specification coverage |
+| --- | --- |
+| Website shows the top 10 user scores | `GET /v1/leaderboard`, Redis sorted set read model, and leaderboard update logic define the ordered top 10 response. |
+| Live update of the scoreboard | WebSocket specification, `LeaderboardUpdated` event schema, event bus, and Redis WebSocket adapter cover realtime delivery across multiple gateway instances. |
+| User action completion increases score | `POST /v1/score-events`, `score_transactions`, `user_scores`, and score worker flow define how one valid completion changes the user's total score. |
+| Action completion dispatches an API call | The score event submission endpoint is the public contract called after action completion. |
+| Prevent unauthorized score increases | Key security decision, completion proof validation, trusted action policies, idempotency, replay protection, rate limiting, and audit records cover fraud prevention. |
+| Backend team can implement from the spec | API contracts, data model, events, reliability rules, observability, and implementation phases describe the expected build plan. |
+
+## 4. Scope
 
 This module owns:
 
@@ -33,7 +44,7 @@ This module does not own:
 - User registration and password authentication.
 - Frontend rendering.
 
-## 4. Key Security Decision
+## 5. Key Security Decision
 
 The client must never be trusted to submit the score delta directly.
 
@@ -47,11 +58,11 @@ verifiable by a trusted server-side system. The proof can be one of these:
 The client request can identify the completed action, but the backend must derive
 the score delta from trusted server-side configuration or a signed claim.
 
-## 5. High-Level Architecture
+## 6. High-Level Architecture
 
 ![High-level architecture](./images/high-level-architecture.png)
 
-## 6. Components
+## 7. Components
 
 | Component | Responsibility |
 | --- | --- |
@@ -68,13 +79,31 @@ the score delta from trusted server-side configuration or a signed claim.
 | WebSocket Gateway | Sends initial snapshots and live leaderboard updates to subscribed clients. |
 | Redis WebSocket Adapter | Connects multiple WebSocket gateway instances through Redis Pub/Sub so leaderboard broadcasts reach clients connected to any gateway instance. |
 
-## 7. Execution Flow
+## 8. Non-Functional Requirements and Capacity Targets
+
+These targets are initial production goals. The implementation team should
+validate and tune them with load testing before launch.
+
+| Area | Target |
+| --- | --- |
+| Leaderboard read latency | `p95 <= 100 ms` from Redis under normal load; database fallback should target `p95 <= 500 ms`. |
+| Score submission latency | `p95 <= 200 ms` for API processing after completion proof validation; return `202 Accepted` after the database transaction and outbox write commit. |
+| Realtime propagation | `p95 <= 1 second` from committed score transaction to client-visible leaderboard update; target `<= 250 ms` during normal traffic. |
+| Write throughput | Baseline target of `100 score events/second`, with burst handling to `500 score events/second` by scaling API instances and workers. |
+| WebSocket capacity | Support horizontal scaling through WSS ingress and Redis WebSocket adapter; use load testing to set the per-gateway limit, with an initial target of `5,000-10,000` active sockets per gateway instance. |
+| Availability | Score write API and leaderboard read API should target `99.9%` monthly availability for the first production release. |
+| Durability | Once `POST /v1/score-events` returns success, no accepted score transaction may be lost; the database is the source of truth. |
+| Consistency | Database score state is strongly consistent per accepted transaction; Redis leaderboard and WebSocket clients are eventually consistent within the realtime propagation target. |
+| Security | Invalid, expired, replayed, or mismatched completion proofs must not change score and must create an audit record. |
+| Audit retention | Keep score transactions permanently unless product policy says otherwise; keep rejected attempts for at least `90 days` or the agreed abuse-investigation window. |
+
+## 9. Execution Flow
 
 ![Execution flow](./images/execution-flow.svg)
 
-## 8. API Specification
+## 10. API Specification
 
-### 8.1 Submit Score Event
+### 10.1 Submit Score Event
 
 ```http
 POST /v1/score-events
@@ -134,7 +163,7 @@ Error responses:
 | `422` | `INVALID_COMPLETION_PROOF` | Action proof is invalid or expired. |
 | `429` | `RATE_LIMITED` | Too many score update attempts. |
 
-### 8.2 Get Leaderboard Snapshot
+### 10.2 Get Leaderboard Snapshot
 
 ```http
 GET /v1/leaderboard?limit=10
@@ -165,7 +194,7 @@ Response:
 }
 ```
 
-### 8.3 Issue Action Token (Reference Only)
+### 10.3 Issue Action Token (Reference Only)
 
 This endpoint belongs to the trusted action service, not the scoreboard module.
 It is shown here only to clarify one possible anti-cheat integration.
@@ -202,7 +231,7 @@ Token rules:
 - Token TTL should be short, for example 5 minutes.
 - Token nonce must be marked as used after the score event is accepted.
 
-## 9. WebSocket Specification
+## 11. WebSocket Specification
 
 Connection:
 
@@ -268,7 +297,7 @@ Rules:
 - Clients receive a fresh snapshot when subscribing or reconnecting.
 - Events include a monotonically increasing `version` so clients can ignore stale updates.
 
-## 10. Database Schema and Data Model
+## 12. Database Schema and Data Model
 
 ![Database schema](./images/database-schema.png)
 
@@ -372,7 +401,7 @@ Required indexes:
 - Index `(aggregate_type, aggregate_id)` for troubleshooting event delivery by
   transaction.
 
-## 11. Redis Model
+## 13. Redis Model
 
 Use a sorted set for the hot leaderboard:
 
@@ -410,7 +439,7 @@ Tie-break rule:
   the database or an additional read model. A plain Redis sorted set cannot
   express that secondary ordering by itself.
 
-## 12. Event Schemas
+## 14. Event Schemas
 
 ### `ScoreApplied`
 
@@ -450,7 +479,7 @@ Tie-break rule:
 }
 ```
 
-## 13. Authorization and Fraud Prevention
+## 15. Authorization and Fraud Prevention
 
 Required controls:
 
@@ -479,7 +508,7 @@ Recommended proof payload if using a signed token:
 }
 ```
 
-## 14. Leaderboard Update Logic
+## 16. Leaderboard Update Logic
 
 The worker must decide whether to broadcast by comparing the previous top 10 and
 the new top 10.
@@ -503,7 +532,7 @@ For high event volume, the worker may debounce leaderboard broadcasts in a short
 window, for example 100 milliseconds, while still applying every score
 transaction exactly once.
 
-## 15. Reliability Requirements
+## 17. Reliability Requirements
 
 - Use a database transaction for transaction insert, aggregate score update, and
   outbox insert.
@@ -537,7 +566,7 @@ Failure handling:
 | Redis WebSocket adapter is unavailable | Keep WebSocket connections alive when possible, pause cross-node broadcast, and recover by sending a fresh snapshot after reconnect. |
 | Event repeatedly fails | Move to a dead-letter queue and alert engineering. |
 
-## 16. Observability
+## 18. Observability
 
 Metrics:
 
@@ -563,7 +592,49 @@ Alerts:
 - Worker error rate above threshold.
 - Repeated invalid proof attempts by one user or IP.
 
-## 17. Acceptance Criteria
+## 19. Implementation Phases
+
+### Phase 1: Functional MVP
+
+- Implement `POST /v1/score-events` with JWT authentication, completion proof
+  validation, trusted score delta lookup, idempotency, and duplicate
+  `actionCompletionId` protection.
+- Create the database tables and constraints for `score_attempts`,
+  `score_transactions`, `user_scores`, `action_policies`, and `outbox_events`.
+- Implement `GET /v1/leaderboard` from Redis if available, with a database
+  fallback for correctness.
+- Implement one WebSocket gateway that returns an initial
+  `leaderboard.snapshot` and can send `leaderboard.updated` events.
+
+### Phase 2: Production Reliability
+
+- Move leaderboard fanout to the transactional outbox and score worker flow.
+- Use Redis sorted sets for the hot leaderboard read model.
+- Add the leaderboard event bus and Redis WebSocket adapter so multiple gateway
+  instances receive the same broadcast events.
+- Configure WSS ingress health checks, idle timeout, heartbeat interval, and
+  connection draining.
+- Add metrics, structured logs, and alerts listed in the observability section.
+
+### Phase 3: Scale and Security Hardening
+
+- Partition score workers by `userId` when write volume requires ordered
+  parallel processing.
+- Add rate limiting by user, IP, action type, and invalid-proof count.
+- Add Redis rebuild and reconciliation jobs from `user_scores`.
+- Add abuse dashboards for rejected attempts, duplicate completions, and proof
+  validation failures.
+- Run load tests against API write throughput, Redis leaderboard reads, event
+  bus fanout, and WebSocket gateway capacity.
+
+### Phase 4: Product Extensions
+
+- Add seasonal, regional, or action-specific leaderboards if required.
+- Add admin tooling for score ledger inspection and compensating reversals.
+- Add privacy controls for public display names and profile fields.
+- Add moderation workflows if scores can be challenged after publication.
+
+## 20. Acceptance Criteria
 
 - `GET /v1/leaderboard` returns exactly the top 10 users ordered by score
   descending.
@@ -582,7 +653,7 @@ Alerts:
 - Invalid or expired completion proofs are rejected and do not change score.
 - Redis can be rebuilt from database state without losing scores.
 
-## 18. Additional Improvement Comments
+## 21. Additional Improvement Comments
 
 - For a small MVP, the score API can update Redis synchronously after committing
   the database transaction. Keep the outbox table anyway so the system can move
@@ -599,7 +670,7 @@ Alerts:
 - Consider privacy requirements before broadcasting display names; user profile
   fields may need to be fetched from a public profile read model.
 
-## 19. Open Questions for Product and Engineering
+## 22. Open Questions for Product and Engineering
 
 - What action types exist, and are score deltas static or configurable by time
   period?
