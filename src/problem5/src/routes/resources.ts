@@ -74,7 +74,7 @@ export default function createResourceRouter(resourceService: ResourceService): 
     }
   );
 
-  router.put(
+  router.patch(
     '/:id',
     validateRequest([
       { schema: ResourceIdSchema, target: 'params' },

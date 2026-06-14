@@ -9,9 +9,11 @@ const implementations = [
 const cases: Array<[number, number]> = [
   [0, 0],
   [1, 1],
+  [2, 3],
   [5, 15],
   [10, 55],
   [100, 5050],
+  [100_000, 5_000_050_000],
   [-1, -1],
   [-5, -15],
   [-10, -55],
@@ -40,6 +42,17 @@ for (const [name, implementation] of implementations) {
   if (!rejectedNonInteger) {
     throw new Error(`${name}(1.5) should reject non-integer input`);
   }
+}
+
+const largeFormulaInput = 134_217_727;
+const largeFormulaExpected = 9_007_199_187_632_128;
+assertions += 1;
+
+const largeFormulaActual = sum_to_n_b(largeFormulaInput);
+if (largeFormulaActual !== largeFormulaExpected) {
+  throw new Error(
+    `sum_to_n_b(${largeFormulaInput}) returned ${largeFormulaActual}; expected ${largeFormulaExpected}`
+  );
 }
 
 console.log(`All ${assertions} assertions passed.`);

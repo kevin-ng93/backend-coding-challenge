@@ -1,6 +1,8 @@
 import request from 'supertest';
 import { cleanDatabase, createMultipleTestResources, createTestResource } from '../setup';
-import app from '../../src/app';
+import { createApp } from '../../src/app';
+
+const app = createApp();
 
 describe('Problem 5 CRUD API', () => {
   beforeEach(() => {
@@ -15,6 +17,22 @@ describe('Problem 5 CRUD API', () => {
       message: 'Server is running',
       timestamp: expect.any(String),
     });
+  });
+
+  it('applies the configured CORS policy', async () => {
+    const allowedResponse = await request(app)
+      .get('/health')
+      .set('Origin', 'http://localhost:5173')
+      .expect(200);
+
+    expect(allowedResponse.headers['access-control-allow-origin']).toBe('http://localhost:5173');
+
+    const blockedResponse = await request(app)
+      .get('/health')
+      .set('Origin', 'https://not-allowed.example')
+      .expect(200);
+
+    expect(blockedResponse.headers['access-control-allow-origin']).toBeUndefined();
   });
 
   it('creates a resource', async () => {
@@ -115,7 +133,7 @@ describe('Problem 5 CRUD API', () => {
     const id = createResponse.body.data.id;
 
     const response = await request(app)
-      .put(`/api/resources/${id}`)
+      .patch(`/api/resources/${id}`)
       .send({ name: 'Updated name', status: 'inactive' })
       .expect(200);
 
@@ -127,6 +145,26 @@ describe('Problem 5 CRUD API', () => {
         name: 'Updated name',
         status: 'inactive',
       },
+    });
+  });
+
+  it('rejects empty update payloads', async () => {
+    const createResponse = await request(app)
+      .post('/api/resources')
+      .send(createTestResource())
+      .expect(201);
+    const id = createResponse.body.data.id;
+
+    const response = await request(app).patch(`/api/resources/${id}`).send({}).expect(400);
+
+    expect(response.body).toMatchObject({
+      success: false,
+      message: 'Validation failed',
+      errors: expect.arrayContaining([
+        expect.objectContaining({
+          message: 'At least one field is required for update',
+        }),
+      ]),
     });
   });
 

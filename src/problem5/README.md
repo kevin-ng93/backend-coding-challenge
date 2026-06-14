@@ -5,6 +5,8 @@ endpoints for `resources` and persists data in SQLite.
 
 SQLite is used intentionally as the simple persistent database for this task. It
 keeps local setup small and requires no Docker or external database service.
+For a larger production deployment, replace SQLite with a client/server
+database such as PostgreSQL because SQLite has single-writer limitations.
 
 ## Requirements Covered
 
@@ -38,6 +40,14 @@ The server reads these environment variables:
 | --- | --- | --- |
 | `PORT` | `3000` | HTTP server port |
 | `DATABASE_PATH` | `database.sqlite` | SQLite file path |
+| `CORS_ORIGINS` | Local development origins | Comma-separated list of allowed browser origins. In production, configure this explicitly. Use `*` only for a trusted demo environment. |
+
+## Security Scope
+
+Authentication and authorization are intentionally out of scope for this
+assignment. Do not expose the API as-is in production without adding an
+authentication layer, ownership checks, rate limiting, and a production-specific
+CORS allowlist.
 
 ## Install
 
@@ -126,7 +136,7 @@ GET /api/resources/:id
 ### Update Resource
 
 ```http
-PUT /api/resources/:id
+PATCH /api/resources/:id
 Content-Type: application/json
 ```
 

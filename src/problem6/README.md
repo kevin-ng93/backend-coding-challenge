@@ -44,6 +44,12 @@ This module does not own:
 - User registration and password authentication.
 - Frontend rendering.
 
+Assumptions:
+
+- Scores are integer points. If the product later needs fractional points, store
+  scores in minor units, for example milli-points, or change the schema before
+  launch.
+
 ## 5. Key Security Decision
 
 The client must never be trusted to submit the score delta directly.
@@ -158,6 +164,7 @@ Error responses:
 | `400` | `INVALID_REQUEST` | Missing or malformed fields. |
 | `401` | `UNAUTHENTICATED` | Missing, expired, or invalid JWT. |
 | `403` | `FORBIDDEN` | User is not allowed to claim this action. |
+| `403` | `ACTION_DISABLED` | The action type exists but is disabled by policy. |
 | `409` | `DUPLICATE_ACTION_COMPLETION` | `actionCompletionId` was already claimed. |
 | `409` | `IDEMPOTENCY_CONFLICT` | Same idempotency key reused with a different payload. |
 | `422` | `INVALID_COMPLETION_PROOF` | Action proof is invalid or expired. |
@@ -173,6 +180,10 @@ Authorization: Bearer <access_token>  # optional for public leaderboards
 Authentication is optional for this read endpoint if the product allows public
 scoreboard viewing. Score submission and WebSocket subscription remain
 authenticated.
+
+For public leaderboard reads, return `Cache-Control: public, max-age=5,
+stale-while-revalidate=30` unless product requirements demand a stricter
+freshness guarantee.
 
 Response:
 
@@ -229,6 +240,8 @@ Token rules:
 - The scoreboard module still loads `scoreDelta` from its own trusted
   `action_policies` table or config.
 - Token TTL should be short, for example 5 minutes.
+- Token expiry validation may allow a small clock-skew leeway, for example 30
+  seconds, but expired tokens must never be accepted beyond that leeway.
 - Token nonce must be marked as used after the score event is accepted.
 
 ## 11. WebSocket Specification
@@ -296,6 +309,14 @@ Rules:
 - Expired tokens must close the connection or require re-authentication.
 - Clients receive a fresh snapshot when subscribing or reconnecting.
 - Events include a monotonically increasing `version` so clients can ignore stale updates.
+- The `entries` array in `leaderboard.updated` is the complete current top 10.
+  Clients should replace the displayed leaderboard with this array instead of
+  applying a partial diff. `changedUserIds` is only a rendering hint, so users
+  removed from the top 10 do not need a separate `removedUserIds` list.
+- The gateway should send a heartbeat ping every 25 seconds, require a pong
+  within 10 seconds, and close connections after 2 missed heartbeats. The WSS
+  ingress idle timeout should be at least 60 seconds, or the heartbeat interval
+  must be set below half of the ingress idle timeout.
 
 ## 12. Database Schema and Data Model
 
@@ -377,6 +398,10 @@ Stores trusted score values for each action type.
 | `score_delta` | integer | Points awarded for one valid completion. |
 | `enabled` | boolean | Disabled actions cannot award points. |
 | `updated_at` | timestamp | Last policy update time. |
+
+If `enabled` is `false`, `POST /v1/score-events` must return `403
+ACTION_DISABLED`, record a rejected `score_attempts` row, and must not insert a
+`score_transactions` row.
 
 ### `outbox_events`
 
@@ -494,6 +519,19 @@ Required controls:
 - Rate limit by `userId`, IP, action type, and failed validation count.
 - Store all accepted and rejected attempts in `score_attempts` for audit and
   abuse investigation.
+
+Initial rate-limit defaults:
+
+| Limit | Initial value | Notes |
+| --- | --- | --- |
+| Score submissions per authenticated user | `60/minute` with burst `10/10 seconds` | Tune by action frequency and expected gameplay. |
+| Score submissions per source IP | `300/minute` | Protects shared NATs while limiting broad abuse. |
+| Same action type per user | `10/minute` by default | Override per `action_policies` if an action is naturally more frequent. |
+| Invalid completion proofs per user or IP | `5/minute`, then temporary block for `15 minutes` | Block duration should reset after a quiet period. |
+| WebSocket connection attempts per IP | `60/minute` | Prevents reconnect storms and credential guessing. |
+
+These values are starting points for implementation. They should be adjusted
+after load testing and abuse-pattern analysis.
 
 Recommended proof payload if using a signed token:
 
