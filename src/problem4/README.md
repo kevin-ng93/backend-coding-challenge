@@ -40,6 +40,7 @@ consistent with the idea that `sum_to_n(n)` has the same sign as `n`.
 
 ```sh
 npm install
+npm test
 npm run typecheck
 npm run build
 ```

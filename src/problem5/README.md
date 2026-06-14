@@ -3,6 +3,9 @@
 Backend server built with ExpressJS and TypeScript. The API exposes CRUD
 endpoints for `resources` and persists data in SQLite.
 
+SQLite is used intentionally as the simple persistent database for this task. It
+keeps local setup small and requires no Docker or external database service.
+
 ## Requirements Covered
 
 - Create a resource

@@ -4,6 +4,7 @@
   "types": "dist/index.d.ts",
   "scripts": {
     "build": "tsc",
+    "test": "tsc --module CommonJS --target ES2020 --strict --skipLibCheck index.ts test.ts --outDir dist-test && node dist-test/test.js && rm -rf dist-test",
     "typecheck": "tsc --noEmit"
   },
   "devDependencies": {

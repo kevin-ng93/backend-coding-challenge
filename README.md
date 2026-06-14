@@ -81,6 +81,7 @@ Problem 4:
 ```sh
 cd src/problem4
 npm install
+npm test
 npm run typecheck
 npm run build
 ```
